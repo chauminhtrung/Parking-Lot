@@ -31,15 +31,7 @@ public class AccountServiceImpl implements AccountService {
         Account acc = new Account();
         acc.setUsername(request.getUsername());
         acc.setRole(request.getRole());
-
-        try {
-            MessageDigest digest = MessageDigest.getInstance("SHA-256");
-            byte[] hash = digest.digest(request.getPassword().getBytes(StandardCharsets.UTF_8));
-            acc.setPasswordHash(hash);
-        } catch (Exception e) {
-            throw new RuntimeException("Error hashing password", e);
-        }
-
+        acc.setPasswordHash(request.getPassword());
         Account saved = accountRepository.save(acc);
 
         AccountResponse response = new AccountResponse();
@@ -90,16 +82,17 @@ public class AccountServiceImpl implements AccountService {
         }
 
         try {
-            MessageDigest digest = MessageDigest.getInstance("SHA-256");
-            byte[] hash = digest.digest(password.getBytes(StandardCharsets.UTF_8));
 
             // So sánh mảng byte
-            if (!Arrays.equals(hash, acc.getPasswordHash())) {
+            if (!password.equals(acc.getPasswordHash())) {
                 throw new RuntimeException("Sai mật khẩu");
             }
 
-            AccountResponse response = accountMapper.toResponse(acc);
-            System.out.println(response); // xem dữ liệu có null không
+            AccountResponse response = new AccountResponse();
+            response.setAccountId(acc.getAccountId());
+            response.setUsername(acc.getUsername());
+            response.setRole(acc.getRole());
+
             return response;
         } catch (Exception e) {
             throw new RuntimeException("Lỗi khi xác thực tài khoản", e);

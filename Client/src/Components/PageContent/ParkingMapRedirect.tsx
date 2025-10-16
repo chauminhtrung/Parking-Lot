@@ -13,6 +13,7 @@ import parkingLotApi from "../../Api/parkingLotApi";
 import parkingAreaApi from "../../Api/parkingAreaApi";
 import floorApi  from "../../Api/parkingFloorApi";
 import toast from "react-hot-toast";
+import parkingSpotApi from "../../Api/parkingSpotApi";
 
 interface ParkingMapProps {
   user: User | null; // ✅ Thêm prop user
@@ -40,6 +41,7 @@ const [floorAreas, setFloorAreas] = useState<{
   const [description, setDescription] = useState("");
   const navigate = useNavigate();
   
+
 
 const handleCreateParkingLot = async () => {
   try {
@@ -71,13 +73,7 @@ const handleCreateParkingLot = async () => {
           return;
         }
 
-        // 🔥 Kiểm tra nếu người dùng không chọn số chỗ
-        if (
-          area.spotCount === undefined ||
-          area.spotCount === null ||
-          area.spotCount === 0 ||
-          area.spotCount === ""
-        ) {
+        if (!area.spotCount) {
           toast.error(`⚠️ Vui lòng chọn số chỗ cho khu ${area.areaName} ở tầng ${floorNumber}!`);
           return;
         }
@@ -94,7 +90,7 @@ const handleCreateParkingLot = async () => {
     const lotId = newLot.lotId;
     if (!lotId) throw new Error("Không lấy được lotId từ backend");
 
-    // 5️⃣ Tạo các tầng và khu vực
+    // 5️⃣ Tạo các tầng + khu vực + chỗ đỗ
     for (let i = 1; i <= floors; i++) {
       const floorData = floorAreas[i];
       const newFloor = await floorApi.createFloor({
@@ -107,16 +103,29 @@ const handleCreateParkingLot = async () => {
       if (!floorId || !floorData) continue;
 
       for (const area of floorData.areas) {
-        await parkingAreaApi.createParkingArea({
+        // 🏗️ Tạo khu vực
+        const newArea = await parkingAreaApi.createParkingArea({
           floorId,
           areaName: area.areaName,
           description: `Khu ${area.areaName} - Tầng ${i}: ${area.description}`,
           spotCount: area.spotCount,
         });
+
+        // ✅ Tạo chỗ đỗ (Parking Spot) cho từng khu
+        if (newArea.areaId && area.spotCount > 0) {
+          for (let s = 1; s <= area.spotCount; s++) {
+            const spotCode = `${area.areaName}${s}`; // ví dụ: A1, A2, A3
+            await parkingSpotApi.createParkingSpot({
+              areaId: newArea.areaId,
+              spotCode,
+              status: "Empty",
+            });
+          }
+        }
       }
     }
 
-    // 6️⃣ Thành công → Thông báo + Reset form
+    // 6️⃣ Thành công → Reset & thông báo
     toast.success(`🎉 Tạo bãi xe "${name}" thành công!`);
     if (user) setUser({ ...user });
     navigate(`/${lotId}/home/parkingmap`);

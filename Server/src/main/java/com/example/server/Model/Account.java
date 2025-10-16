@@ -19,7 +19,7 @@ public class Account {
     private String username;
 
     @Column(name = "passwordHash", nullable = false)
-    private byte[] passwordHash;
+    private String passwordHash;
 
     @Column(name = "role", nullable = false)
     private String role = "admin";

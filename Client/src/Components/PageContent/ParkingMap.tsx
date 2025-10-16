@@ -90,13 +90,13 @@ const carIcons = vehicleTypes.map((vt) => {
   let iconSrc: string;
   switch (vt.typeId) {
     case 1:
-      iconSrc = FaCarSide;
+        iconSrc = FaShuttleVan;
       break;
     case 2:
-      iconSrc = FaTruckPickup;
+           iconSrc = FaCarSide;
       break;
     case 3:
-      iconSrc = FaShuttleVan;
+     iconSrc = FaTruckPickup;
       break;
     default:
       iconSrc = caricon; // fallback icon
@@ -208,7 +208,8 @@ const fetchZones = async () => {
                 if (activeTicket) {
                   // Lấy thông tin xe theo biển số
                   const vehicle = await vehicleApi.getVehicleByPlate(activeTicket.plateNumber);
-
+                    console.log(vehicle);
+                    
                   // Kiểm tra loại xe (vehicleTypeId)
                   const typeId = vehicle?.vehicleType
                   if (typeId === "Car") vehicleIcon = caricon;
@@ -489,6 +490,8 @@ const ParkingRow: React.FC<{ left?: Slot; right?: Slot }> = ({ left, right }) =>
     if (!slot) return null;
     // nếu chỗ đã chiếm thì hiển thị icon xe
     if (slot.status === "occupied") {
+      console.log(slot.vehicleIcon );
+      
       return (
         <img
           src={slot.vehicleIcon || "/icons/caricon.png"} // hoặc icon mặc định
@@ -510,7 +513,7 @@ const ParkingRow: React.FC<{ left?: Slot; right?: Slot }> = ({ left, right }) =>
         {left && (
           <>
             {getSlotIcon(left)}
-            <div className="text-sm font-semibold text-gray-700">{left.id} </div>
+            <div className="text-sm font-semibold text-gray-700">{left.id}  </div>
           </>
         )}
       </div>
