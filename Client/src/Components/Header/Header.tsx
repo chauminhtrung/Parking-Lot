@@ -120,10 +120,11 @@ export default function Header({
           {/* Parking Stats */}
           <div className="flex items-center space-x-2 md:space-x-4 text-sm">
             <div className="flex items-center space-x-1 md:space-x-2">
-              <div className="w-3 h-3 bg-red-500 rounded-full"></div>
+              <div className="w-3 h-3 bg-green-300 border-green-400 rounded-full"></div>
               <span className="font-medium text-gray-700">{stats.filled}</span>
               <span className="text-gray-500 hidden sm:inline">Filled</span>
             </div>
+            
             <div className="flex items-center space-x-1 md:space-x-2">
               <div className="w-3 h-3 bg-gray-300 rounded-full"></div>
               <span className="font-medium text-gray-700">{stats.empty}</span>
