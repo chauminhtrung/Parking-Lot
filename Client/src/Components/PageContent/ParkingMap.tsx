@@ -25,7 +25,7 @@ import employeeApi from "../../Api/employeeApi";
 import caricon from '../../assets/caricon.png'
 import motoicon from '../../assets/motoicon.png'
 import truckicon from '../../assets/trucicon.png' 
-
+import type { ParkingArea } from "../../Api/parkingAreaApi";
 
 interface ParkingMapProps {
   user: User | null; // ✅ Thêm prop user
@@ -49,6 +49,7 @@ interface ZoneS2 extends Zone {  // kế thừa Zone
   left: Slot[];
   right: Slot[];
    spots?: Slot[]; // toàn bộ spots từ API (tuỳ chọn)
+    floorId: number; // ✅ thêm vào đây
 }
 
 
@@ -70,6 +71,7 @@ const [carPlate, setCarPlate] = useState("");
 const [carOwner, setCarOwner] = useState("");
 const [carPhone, setCarPhone] = useState("");
 
+const [selectedSlotCount, setSelectedSlotCount] = useState<number | null>(null);
 
 
 useEffect(() => {
@@ -174,6 +176,31 @@ const handleCreateVehicle = async () => {
 };
 
 
+const handleSaveSlotCount = async () => { 
+  if (!selectedZone || selectedSlotCount === null) return;
+
+  try {
+    const updatedZone: ParkingArea = {
+      id: selectedZone.id,
+      areaName: selectedZone.areaName,
+      spotCount: selectedSlotCount,
+      floorId: selectedZone.floorId, // ✅ giờ có sẵn
+    };
+
+    await parkingAreaApi.updateParkingArea(selectedZone.id, updatedZone);
+    toast.success(`Cập nhật số lượng chỗ đỗ cho khu ${selectedZone.areaName} thành công!`);
+    fetchZones();
+    closeModal();
+    setTimeout(() => {
+  window.location.reload();
+}, 1000); // đợi 1 giây cho toast hiển thị rồi reload
+  } catch (err: any) {
+    console.error(err);
+    toast.error(err?.message || "Cập nhật thất bại!");
+  }
+};
+
+
 // Tạo 1 zone với 4 slot trái/phải
 
 
@@ -252,6 +279,7 @@ const fetchZones = async () => {
           left,
           right,
           spots: slots,
+           floorId: floorData.floorId, // ✅ thêm đây
         } as ZoneS2;
       })
     );
@@ -293,13 +321,14 @@ const ParkingZone: React.FC<{ zone?: ZoneS2; onSetup?: (zone: ZoneS2) => void }>
 };
 
 
-
-
-
-
    const handleSetupZone = (zone: ZoneS2) => {
     setSelectedZone(zone); // 👉 mở modal
     setSelectedSlot(null); // reset slot khi mở zone
+
+  // ✅ Tự động đánh dấu số lượng slot đang có
+  const totalSlots = zone.left.length + zone.right.length;
+  setSelectedSlotCount(totalSlots);
+
   };
 
     const handleSetupSlot = (slot: Slot) => {
@@ -616,10 +645,12 @@ return (
                     {[2, 4, 6, 8].map((num) => (
                       <label key={num} className="flex items-center gap-2">
                         <input
-                          type="radio"
-                          name="slot"
-                          value={num}
-                          className="form-radio"
+                       type="radio"
+                  name="slot"
+                  value={num}
+                  className="form-radio"
+                  checked={selectedSlotCount === num} // ✅ đánh dấu radio
+                  onChange={() => setSelectedSlotCount(num)} // cập nhật khi user chọn
                         />
                         {num}
                       </label>
@@ -627,13 +658,20 @@ return (
                   </div>
                 </div>
 
-                <button className="w-full px-4 py-2 bg-[#503EE1] text-white rounded hover:bg-blue-600">
+                <button className="w-full px-4 py-2 bg-[#503EE1] text-white rounded hover:bg-blue-600"
+                onClick={handleSaveSlotCount}
+                >
                   Lưu
                 </button>
               </div>
             </div>
           </div>
         )}
+
+
+
+
+
         {selectedSlot && (
           <div
             className={`fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50 transition-opacity duration-500 ${

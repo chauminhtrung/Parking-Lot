@@ -100,7 +100,7 @@ const menuItems = [
   { id: "reports", label: "Reports", icon: ChartIcon, active: false },
   { id: "problems", label: "Problems", icon: AlertIcon, active: false },
   { id: "roles", label: "Roles and permissions", icon: UsersIcon, active: false },
-  { id: "manage-floors", label: "Manage VehicleType", icon: SettingsIcon, active: false },
+  { id: "manage-floors", label: "Manage floors", icon: SettingsIcon, active: false },
 ]
 
 export default function MobileSidebar({ isOpen, onClose, onManageFloors, user }: MobileSidebarProps) {
