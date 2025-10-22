@@ -61,6 +61,8 @@ public class VehicleServiceImpl implements VehicleService {
         // ✅ Lấy tên chủ xe từ liên kết Customer
         if (entity.getCustomer() != null) {
             r.setOwnerName(entity.getCustomer().getFullName());
+            r.setOwnerSDT(entity.getCustomer().getPhone());
+            r.setOwnerID(entity.getCustomer().getCustomerId());
         } else {
             r.setOwnerName("Unknown");
         }

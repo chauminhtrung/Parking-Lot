@@ -27,6 +27,7 @@ import motoicon from '../../assets/motoicon.png'
 import truckicon from '../../assets/trucicon.png' 
 import type { ParkingArea } from "../../Api/parkingAreaApi";
 
+
 interface ParkingMapProps {
   user: User | null; // ✅ Thêm prop user
    setUser: React.Dispatch<React.SetStateAction<User | null>>;
@@ -70,8 +71,25 @@ const [vehicleTypes, setVehicleTypes] = useState<VehicleTypeResponse[]>([]);
 const [carPlate, setCarPlate] = useState("");
 const [carOwner, setCarOwner] = useState("");
 const [carPhone, setCarPhone] = useState("");
-
 const [selectedSlotCount, setSelectedSlotCount] = useState<number | null>(null);
+const [isOccupied, setIsOccupied] = useState(false);
+const [activeTicket, setActiveTicket] = useState<any>(null);
+const [customerData, setCustomerData] = useState({
+  customerId: null,
+  name: "",
+  phone: "",
+});
+
+const [vehicleData, setVehicleData] = useState({
+  vehicleId:0,
+  plateNumber: "",
+  typeId: 0,
+  customerId: 0,
+});
+const [filterStatus, setFilterStatus] = useState<"Đã gửi" | "Chưa có" | "Tất Cả">("Tất Cả");
+
+  const [showModal, setShowModal] = useState(false);
+  const [modalPosition, setModalPosition] = useState({ x: 0, y: 0 });
 
 
 useEffect(() => {
@@ -85,6 +103,24 @@ useEffect(() => {
   };
   fetchVehicleTypes();
 }, []);
+
+  const handleRightClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    // Lưu toạ độ (nếu muốn hiển thị modal gần vị trí chuột)
+    setModalPosition({ x: e.pageX, y: e.pageY });
+    // Mở modal
+    setShowModal(true);
+  };
+
+  const handleCloseModal = () => {
+    setShowModal(false);
+  };
+
+const handleSelect = (status: "Đã gửi" | "Chưa có" | "Tất Cả") => {
+  setFilterStatus(status);  // cập nhật state filter
+  handleCloseModal();       // đóng modal
+};
+
 
 
 // Giả sử bạn muốn gán icon theo typeId
@@ -110,6 +146,49 @@ const carIcons = vehicleTypes.map((vt) => {
   };
 });
 
+const handleUpdateVehicle = async () => {
+  try {
+    if (customerData.customerId) {
+      await customerApi.updateCustomer(customerData.customerId, {
+        fullName: customerData.name,
+        phone: customerData.phone,
+      });
+    }
+
+    if (vehicleData.vehicleId) {
+
+
+      await vehicleApi.updateVehicle(vehicleData.vehicleId, {
+        plateNumber: vehicleData.plateNumber,
+        typeId: vehicleData.typeId!,
+        customerId: customerData.customerId!
+      });
+    }
+
+    toast.success("Cập nhật thông tin xe và khách hàng thành công!");
+  } catch (error) {
+    console.error("❌ Lỗi khi cập nhật:", error);
+    toast.error("Không thể cập nhật thông tin!");
+  }
+};
+
+
+
+const handleCheckout = async () => {
+  if (!activeTicket) return toast.error("Không tìm thấy vé!");
+  try {
+    await ticketApi.checkOutTicket(activeTicket.ticketId);
+    toast.success("Thanh toán và giải phóng chỗ đỗ thành công!");
+    closeModal();
+    fetchZones();
+        setTimeout(() => {
+  window.location.reload();
+}, 1000); // đợi 1 giây cho toast hiển thị rồi reload
+  } catch (err) {
+    console.error(err);
+    toast.error("Tính tiền thất bại!");
+  }
+};
 
 
 const handleCreateVehicle = async () => {
@@ -314,7 +393,13 @@ const ParkingZone: React.FC<{ zone?: ZoneS2; onSetup?: (zone: ZoneS2) => void }>
         </button>
       </div>
     {zone.left.map((slot, i) => (
-      <ParkingRow key={i} left={slot} right={zone.right[i]} />
+       <ParkingRow 
+    key={i} 
+    left={slot} 
+    right={zone.right[i]} 
+    filterStatus={filterStatus} 
+    onSlotClick={(s) => handleSetupSlot(s)} 
+  />
     ))}
     </div>
   );
@@ -331,10 +416,81 @@ const ParkingZone: React.FC<{ zone?: ZoneS2; onSetup?: (zone: ZoneS2) => void }>
 
   };
 
-    const handleSetupSlot = (slot: Slot) => {
-    setSelectedSlot(slot); 
-    setSelectedZone(null); // reset zone khi mở slot
+  const handleSetupSlot = async (slot: Slot) => {
+    setSelectedSlot(slot);
+    setSelectedZone(null);
+    setIsOccupied(false);
+    setActiveTicket(null);
+
+    try {
+      // 🔍 Kiểm tra vé đang hoạt động
+      const ticket = await ticketApi.getActiveTicketBySpot(slot.spotId!);
+      if (ticket) {
+        setIsOccupied(true);
+        setActiveTicket(ticket);
+
+        // Lấy thông tin xe
+        const vehicle = await vehicleApi.getVehicleByPlate(ticket.plateNumber);
+        console.log(vehicle);
+        
+        if (vehicle) {
+          setCarPlate(vehicle.plateNumber || "");
+
+                let typeId = null;
+                    if (vehicle?.vehicleType === "Car") typeId = 1;
+                    else if (vehicle?.vehicleType  === "Motorbike") typeId = 2;
+                    else if (vehicle?.vehicleType  === "Truck") typeId = 3;
+
+          setSelectedIcon(typeId || null);
+          setCarOwner(vehicle.ownerName || "");
+          setCarPhone(vehicle.ownerSDT || "");
+
+          setVehicleData({
+            vehicleId: vehicle.vehicleId!,
+            plateNumber: vehicle.plateNumber,
+            typeId: typeId!, 
+            customerId: vehicle.ownerID
+          });
+
+            // 🟢 Lấy thông tin khách hàng theo ID từ ticket
+        if (vehicle.ownerID) {
+          try {
+            const customer = await customerApi.getCustomerById(vehicle.ownerID);
+
+            if (customer) {
+              setCustomerData({
+                customerId: customer.customerId,
+                name: customer.fullName,
+                phone: customer.phone,
+              });
+            }
+          } catch (err) {
+            console.error("❌ Lỗi khi lấy dữ liệu khách hàng:", err);
+          }
+        }
+
+        }
+      } else {
+        // nếu trống thì reset form
+        // 🚫 Nếu slot trống thì reset toàn bộ
+        setCarPlate("");
+        setCarOwner("");
+        setCarPhone("");
+        setSelectedIcon(null);
+        setCustomerData({ customerId: null, name: "", phone: "" });
+        setVehicleData({ vehicleId: 0, plateNumber: "", typeId:0,customerId:0 });
+      }
+    } catch (err) {
+      setCarPlate("");
+      setCarOwner("");
+      setCarPhone("");
+      setSelectedIcon(null);
+      setCustomerData({ customerId: null, name: "", phone: "" });
+      setVehicleData({ vehicleId: 0, plateNumber: "", typeId: 0,customerId:0  });
+          console.error("❌ Lỗi khi lấy dữ liệu slot:", err);
+    }
   };
+
 
 const closeModal = () => {
   setSelectedZone(null);
@@ -507,29 +663,42 @@ const renderRows = (zones: ZoneS2[]) => {
 };
 
 
-const ParkingRow: React.FC<{ left?: Slot; right?: Slot }> = ({ left, right }) => {
-  const getSlotStyle = (slot?: Slot) => {
-    if (!slot) return "";
-    return slot.status === "occupied"
-      ? "bg-green-100 border-green-400"   // màu khác cho chỗ đã đặt
-      : "bg-white border-gray-200";   // màu bình thường
-  };
+interface ParkingRowProps {
+  left?: Slot;
+  right?: Slot;
+  filterStatus?: "Đã gửi" | "Chưa có" | "Tất Cả";
+  onSlotClick?: (slot: Slot) => void;
+}
+
+const ParkingRow: React.FC<ParkingRowProps> = ({ left, right, filterStatus = "Tất Cả", onSlotClick }) => {
+
+const getSlotStyle = (slot?: Slot) => {
+  if (!slot) return "";
+
+  const status = slot.status?.toLowerCase();
+
+  if (filterStatus === "Chưa có" && status === "empty") {
+   return "border-red-400 animate-blink-red";
+  } 
+  if (filterStatus === "Đã gửi" && status === "occupied") {
+      return "border-green-400 animate-blink-green";
+  } 
+
+  return status === "occupied"
+    ? "bg-green-100 border-green-400"
+    : "bg-white border-gray-200";
+};
+
 
   const getSlotIcon = (slot?: Slot) => {
-    if (!slot) return null;
-    // nếu chỗ đã chiếm thì hiển thị icon xe
-    if (slot.status === "occupied") {
-      console.log(slot.vehicleIcon );
-      
-      return (
-        <img
-          src={slot.vehicleIcon || "/icons/caricon.png"} // hoặc icon mặc định
-          alt="vehicle"
-          className="absolute w-14 h-14 object-contain opacity-90"
-        />
-      );
-    }
-    return null;
+    if (!slot || slot.status !== "occupied") return null;
+    return (
+      <img
+        src={slot.vehicleIcon || "/icons/caricon.png"}
+        alt="vehicle"
+        className="absolute h-16 object-contain opacity-90"
+      />
+    );
   };
 
   return (
@@ -537,12 +706,12 @@ const ParkingRow: React.FC<{ left?: Slot; right?: Slot }> = ({ left, right }) =>
       {/* LEFT SLOT */}
       <div
         className={`w-1/2 h-full flex items-center justify-end pr-3 relative border-b border-t cursor-pointer hover:bg-gray-100 ${getSlotStyle(left)}`}
-        onClick={() => left && handleSetupSlot(left)}
+        onClick={() => left && onSlotClick && onSlotClick(left)}
       >
         {left && (
           <>
             {getSlotIcon(left)}
-            <div className="text-sm font-semibold text-gray-700">{left.id}  </div>
+            <div className="text-sm font-semibold text-gray-700">{left.id}</div>
           </>
         )}
       </div>
@@ -552,7 +721,7 @@ const ParkingRow: React.FC<{ left?: Slot; right?: Slot }> = ({ left, right }) =>
       {/* RIGHT SLOT */}
       <div
         className={`w-1/2 h-full flex items-center justify-start pl-3 relative border-b border-t cursor-pointer hover:bg-gray-100 ${getSlotStyle(right)}`}
-        onClick={() => right && handleSetupSlot(right)}
+        onClick={() => right && onSlotClick && onSlotClick(right)}
       >
         {right && (
           <>
@@ -564,6 +733,8 @@ const ParkingRow: React.FC<{ left?: Slot; right?: Slot }> = ({ left, right }) =>
     </div>
   );
 };
+
+
 
 
 
@@ -586,6 +757,7 @@ return (
   <>
       {user ? (
   <div className="w-full h-full overflow-y-auto p-2  "
+     onContextMenu={handleRightClick}
   >
 
 
@@ -702,68 +874,143 @@ return (
               <div className="space-y-4"> 
 
                   <div>
-                    <label className="block mb-1 font-medium">Biển số xe</label>
-                    <input
-                      type="text"
-                      value={carPlate}
-                      onChange={(e) => setCarPlate(e.target.value)}
-                      className="w-full border p-2 rounded"
-                      placeholder="Nhập biển số xe..."
-                    />
-                  </div>
+                  <label className="block mb-1 font-medium">Biển số xe</label>
+                  <input
+                    type="text"
+                    value={carPlate}
+                    onChange={(e) => {
+                      const newPlate = e.target.value;
+                      setCarPlate(newPlate);
+                      setVehicleData((prev) => ({ ...prev, plateNumber: newPlate }));
+                    }}
+                    className="w-full border p-2 rounded"
+                    placeholder="Nhập biển số xe..."
+                  />
+                </div>
+
+
+              <div>
+                <label className="block mb-1 font-medium">Tên chủ xe</label>
+                <input
+                  type="text"
+                  value={carOwner}
+                  onChange={(e) => {
+                    const newName = e.target.value;
+                    setCarOwner(newName);
+                    setCustomerData((prev) => ({ ...prev, name: newName }));
+                  }}
+                  className="w-full border p-2 rounded"
+                  placeholder="Nhập tên..."
+                />
+              </div>
+
 
                   <div>
-                    <label className="block mb-1 font-medium">Tên chủ xe</label>
-                    <input
-                      type="text"
-                      value={carOwner}
-                      onChange={(e) => setCarOwner(e.target.value)}
-                      className="w-full border p-2 rounded"
-                      placeholder="Nhập tên..."
-                    />
-                  </div>
+            <label className="block mb-1 font-medium">Số điện thoại</label>
+            <input
+              type="text"
+              value={carPhone}
+              onChange={(e) => {
+                const newPhone = e.target.value;
+                setCarPhone(newPhone);
+                setCustomerData((prev) => ({ ...prev, phone: newPhone }));
+              }}
+              className="w-full border p-2 rounded"
+              placeholder="090..."
+            />
+          </div>
 
-                  <div>
-                    <label className="block mb-1 font-medium">Số Điện thoại</label>
-                    <input
-                      type="text"
-                      value={carPhone}
-                      onChange={(e) => setCarPhone(e.target.value)}
-                      className="w-full border p-2 rounded"
-                      placeholder="090..."
-                    />
-                  </div>
 
 
               
-                <div>
-                  <label className="block mb-2 font-medium">
-                    Chọn loại xe
-                  </label>
-              <div className="flex justify-center gap-4">
-                {carIcons.map((c) => (
-                  <button
-                    key={c.id}
-                    onClick={() => setSelectedIcon(c.id)}
-                    className={`p-3 rounded-lg border transition ${
-                      selectedIcon === c.id
-                        ? "bg-[#503EE1] text-white border-white-500"
-                        : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                    }`}
-                  >
-                    {c.icon}
-                  </button>
-                ))}
-              </div>
-                </div>
+    <div>
+      <label className="block mb-2 font-medium">Chọn loại xe</label>
+      <div className="flex justify-center gap-4">
+        {carIcons.map((c) => (
+          <button
+            key={c.id}
+            onClick={() => {
+              setSelectedIcon(c.id);
+              setVehicleData((prev) => ({ ...prev, typeId: c.id }));
+            }}
+            className={`p-3 rounded-lg border transition ${
+              selectedIcon === c.id
+                ? "bg-[#503EE1] text-white border-white-500"
+                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+            }`}
+          >
+            {c.icon}
+          </button>
+        ))}
+      </div>
+    </div>
 
-                <button  onClick={handleCreateVehicle} className="w-full px-4 py-2 bg-[#503EE1] text-white rounded hover:bg-blue-600">
-                  Đặt / Cập nhật xe
+
+            {!isOccupied ? (
+              <button
+                onClick={handleCreateVehicle}
+                className="w-full px-4 py-2 bg-[#503EE1] text-white rounded hover:bg-blue-600"
+              >
+                Đặt xe
+              </button>
+            ) : (
+              <div className="flex gap-2">
+                <button
+                  onClick={handleUpdateVehicle}
+                  className="flex-1 px-4 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-600"
+                >
+                  Cập nhật
                 </button>
+                <button
+                  onClick={handleCheckout}
+                  className="flex-1 px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+                >
+                  Tính tiền
+                </button>
+              </div>
+            )}
+
               </div>
             </div>
           </div>
         )}
+
+         {/* Modal */}
+      {showModal && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black/40 z-50">
+          <div className="bg-white rounded-lg shadow-lg w-[300px] p-5 animate-fadeIn">
+            <h2 className="text-lg font-semibold mb-3 text-center">
+              Chọn trạng thái
+            </h2>
+            <div className="flex flex-col gap-3">
+              <button
+                className="py-2 px-4 bg-green-100 rounded hover:bg-green-200"
+                onClick={() => handleSelect("Đã gửi")}
+              >
+                ✅ Đã gửi
+              </button>
+              <button
+                className="py-2 px-4 bg-red-100 rounded hover:bg-red-200"
+                onClick={() => handleSelect("Chưa có")}
+              >
+                🚫 Chưa có
+              </button>
+                <button
+                className="py-2 px-4 bg-gradient-to-r from-[#a9a4eb] to-[#6A63F0] rounded hover:bg-red-200"
+                onClick={() => handleSelect("Tất Cả")}
+              >
+               Tất Cả
+              </button>
+            </div>
+            <button
+              onClick={handleCloseModal}
+              className="mt-4 text-sm text-gray-500 hover:underline w-full text-center"
+            >
+              Đóng
+            </button>
+          </div>
+        </div>
+      )}
 
       
         <div className="flex items-center gap-2 mt-2 justify-end">

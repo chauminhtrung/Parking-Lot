@@ -93,9 +93,6 @@ public class TicketServiceImpl implements TicketService {
         double fee = hours * ticket.getVehicle().getType().getPricePerHour().doubleValue();
         ticket.setFee(fee);
 
-        ParkingSpot spot = ticket.getSpot();
-        spot.setStatus("Empty");
-        spotRepository.save(spot);
 
         return toResponse(ticketRepository.save(ticket));
     }
