@@ -17,7 +17,7 @@ export default function ManageFloorsPage({  user,setUser }: ManageFloorsPageProp
     <>
       {user ? (
             <div>
-                <h1>day la manager floors</h1>
+                <h1>Thay doi o day ko xóa user</h1>
             </div>
       ) : (
         <h2 className="text-xl text-gray-500">Chưa đăng nhập</h2>
