@@ -1,4 +1,4 @@
 package com.example.server.Repositories;
 
-public interface SummaryRepository {
+public interface AnalyticsRepository {
 }
