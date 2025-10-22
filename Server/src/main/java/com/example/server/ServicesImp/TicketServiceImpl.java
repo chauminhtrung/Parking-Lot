@@ -1,6 +1,7 @@
 package com.example.server.ServicesImp;
 
 import com.example.server.DTO.Request.TicketRequest;
+import com.example.server.DTO.Respone.ActiveTicketResponse;
 import com.example.server.DTO.Respone.TicketResponse;
 import com.example.server.Model.Employee;
 import com.example.server.Model.ParkingSpot;
@@ -16,6 +17,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -34,21 +36,40 @@ public class TicketServiceImpl implements TicketService {
     private TicketResponse toResponse(Ticket ticket) {
         TicketResponse response = new TicketResponse();
         response.setTicketId(ticket.getTicketId());
-        response.setPlateNumber(ticket.getVehicle() != null ? ticket.getVehicle().getPlateNumber() : null);
-        response.setPlateNumber(ticket.getVehicle() != null ? ticket.getVehicle().getPlateNumber() : "Unknown");
-        response.setSpotCode(ticket.getSpot() != null ? ticket.getSpot().getSpotCode() : null);
-        response.setEmployeeName(ticket.getEmployee() != null ? ticket.getEmployee().getFullName() : null);
-        response.setEmployeeName(ticket.getEmployee() != null ? ticket.getEmployee().getFullName() : "Unknown");
-        response.setCheckInTime(ticket.getCheckInTime().toString());
-        response.setCheckOutTime(
-                ticket.getCheckOutTime() != null
-                        ? ticket.getCheckOutTime().toString()
-                        : ""
-        );
 
-        response.setFee(ticket.getFee() != null ?  ticket.getFee() : 0 );
+        // Biển số xe
+        if(ticket.getVehicle() != null){
+            response.setPlateNumber(ticket.getVehicle().getPlateNumber());
+            // Loại xe
+            response.setTypeName(ticket.getVehicle().getType() != null
+                    ? ticket.getVehicle().getType().getTypeName()
+                    : "Unknown");
+            // Khách hàng
+            response.setCustomerName(ticket.getVehicle().getCustomer() != null
+                    ? ticket.getVehicle().getCustomer().getFullName()
+                    : "Unknown");
+        } else {
+            response.setPlateNumber("Unknown");
+            response.setTypeName("Unknown");
+            response.setCustomerName("Unknown");
+        }
+
+        // Chỗ đỗ
+        response.setSpotCode(ticket.getSpot() != null ? ticket.getSpot().getSpotCode() : "Unknown");
+
+        // Nhân viên
+        response.setEmployeeName(ticket.getEmployee() != null ? ticket.getEmployee().getFullName() : "Unknown");
+
+        // Thời gian
+        response.setCheckInTime(ticket.getCheckInTime() != null ? ticket.getCheckInTime().toString() : "");
+        response.setCheckOutTime(ticket.getCheckOutTime() != null ? ticket.getCheckOutTime().toString() : "");
+
+        // Phí
+        response.setFee(ticket.getFee() != null ? ticket.getFee() : 0);
+
         return response;
     }
+
 
     // ---------------------
     // CRUD / Business
@@ -118,6 +139,25 @@ public class TicketServiceImpl implements TicketService {
         return toResponse(ticket);
     }
 
+    @Override
+    public List<ActiveTicketResponse> getActiveTickets() {
+        List<Object[]> rows = ticketRepository.getActiveTickets();
+        List<ActiveTicketResponse> result = new ArrayList<>();
 
+        for (Object[] row : rows) {
+            ActiveTicketResponse dto = new ActiveTicketResponse(
+                    ((Number) row[0]).intValue(),
+                    (String) row[1],
+                    (String) row[2],
+                    (String) row[3],
+                    (String) row[4],
+                    (String) row[5],
+                    ((Number) row[6]).intValue()
+            );
+            result.add(dto);
+        }
+
+        return result;
+    }
 
 }

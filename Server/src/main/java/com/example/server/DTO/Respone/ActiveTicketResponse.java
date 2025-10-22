@@ -1,16 +1,18 @@
 package com.example.server.DTO.Respone;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
-public class TicketResponse {
-    private Integer ticketId;
+@NoArgsConstructor
+@AllArgsConstructor
+public class ActiveTicketResponse {
+    private int ticketId;
     private String plateNumber;
     private String typeName;
     private String customerName;
     private String spotCode;
-    private String employeeName;
     private String checkInTime;
-    private String checkOutTime;
-    private Double fee;
+    private int hoursParked;
 }

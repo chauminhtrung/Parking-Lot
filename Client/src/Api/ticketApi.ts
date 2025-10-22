@@ -7,16 +7,19 @@ export interface TicketRequest {
   employeeId: number;
 }
 
-// 🔵 Response DTO tương ứng với TicketResponse (backend)
+
 export interface TicketResponse {
   ticketId?: number;
   plateNumber: string;
+  typeName?: string;        
+  customerName?: string;    
   spotCode?: string;
   employeeName?: string;
   checkInTime?: string;
   checkOutTime?: string | null;
   fee?: number | null;
 }
+
 
 // 🔗 API URL
 const BASE_URL = "http://localhost:8080/api/tickets";
@@ -43,6 +46,9 @@ const ticketApi = {
   // 🔍 Lấy vé đang hoạt động theo spotId
 getActiveTicketBySpot: async (spotId: number) =>
   (await axios.get<TicketResponse>(`${BASE_URL}/active/${spotId}`)).data,
+
+getActiveTickets: async () =>
+  (await axios.get<TicketResponse[]>(`${BASE_URL}/active-tickets`)).data,
 
 
 

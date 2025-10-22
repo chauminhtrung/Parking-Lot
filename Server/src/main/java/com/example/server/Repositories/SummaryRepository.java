@@ -1,4 +1,26 @@
 package com.example.server.Repositories;
 
-public interface SummaryRepository {
+import com.example.server.Model.ParkingSpot;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.stereotype.Repository;
+
+@Repository
+public interface SummaryRepository extends JpaRepository<ParkingSpot, Integer> {
+
+    @Query("SELECT COUNT(p) FROM ParkingSpot p")
+    int getTotalSpots();
+
+    @Query("SELECT COUNT(p) FROM ParkingSpot p WHERE p.status = 'Empty'")
+    int getEmptySpots();
+
+    @Query("SELECT COUNT(t) FROM Ticket t WHERE t.checkOutTime IS NULL")
+    int getVehiclesParked();
+
+    @Query(value = """
+        SELECT COALESCE(SUM(fee), 0)
+        FROM Ticket
+        WHERE CAST(checkOutTime AS date) = CAST(GETDATE() AS date)
+        """, nativeQuery = true)
+    double getRevenueToday();
 }

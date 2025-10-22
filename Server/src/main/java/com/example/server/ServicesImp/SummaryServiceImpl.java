@@ -3,19 +3,18 @@ package com.example.server.ServicesImp;
 import com.example.server.DTO.SummaryStats;
 import com.example.server.Repositories.SummaryRepository;
 import com.example.server.Services.SummaryService;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.FieldDefaults;
+import lombok.AccessLevel;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import java.math.RoundingMode;
-import java.text.DecimalFormat;
 
 @Service
+@RequiredArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class SummaryServiceImpl implements SummaryService {
 
-    private final SummaryRepository repo;
-
-    public SummaryServiceImpl(SummaryRepository repo) {
-        this.repo = repo;
-    }
+    SummaryRepository repo;
 
     @Override
     @Transactional(readOnly = true)
@@ -25,12 +24,10 @@ public class SummaryServiceImpl implements SummaryService {
         int parked = repo.getVehiclesParked();
         double revenue = repo.getRevenueToday();
 
-        double occupancyRate = 0.0;
-        if (total > 0) {
-            occupancyRate = ((double) parked / (double) total) * 100.0;
-        }
+        double occupancyRate = (total > 0)
+                ? ((double) parked / total) * 100.0
+                : 0.0;
 
         return new SummaryStats(total, empty, parked, occupancyRate, revenue);
     }
-
 }
