@@ -2,3 +2,20 @@
 @tailwind components;
 @tailwind utilities;
 
+@keyframes blink-red {
+  0%, 100% { background-color: #fecaca; } /* đỏ nhạt */
+  50% { background-color: #f1adad; } /* đỏ đậm */
+}
+
+@keyframes blink-green {
+  0%, 100% { background-color: #bbf7d0; } /* xanh nhạt */
+  50% { background-color: #a0e4b9; } /* xanh đậm */
+}
+
+.animate-blink-red {
+  animation: blink-red 1s infinite;
+}
+
+.animate-blink-green {
+  animation: blink-green 1s infinite;
+}

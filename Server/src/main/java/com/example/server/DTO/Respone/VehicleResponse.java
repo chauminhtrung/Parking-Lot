@@ -10,6 +10,8 @@ public class VehicleResponse {
     private String plateNumber;
     private String vehicleType; // ✅ phải có tên này
     private String ownerName;   // ✅ phải có tên này
+    private String ownerSDT;   // ✅ phải có tên
+    private Integer ownerID;   // ✅ phải có tên
 }
 
 
