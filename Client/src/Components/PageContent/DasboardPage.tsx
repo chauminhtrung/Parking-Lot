@@ -133,6 +133,8 @@ export default function DasboardPage({ user, setUser }: DasboardPageProps) {
   const occupancyRate = summaryStats.occupancyRate.toFixed(0);
 
   return (
+    <>
+      {user ? (
     <div className="w-full h-full overflow-y-auto p-2">
       {/* Main Content */}
       <main className="p-6 w-full">
@@ -443,5 +445,10 @@ export default function DasboardPage({ user, setUser }: DasboardPageProps) {
         </div>
       </main>
     </div>
+      ) : (
+        <h2 className="text-xl text-gray-500">Chưa đăng nhập</h2>
+      )}
+    </>
+
   );
 }
