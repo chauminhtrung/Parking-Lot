@@ -2,6 +2,7 @@ package com.example.server.Services;
 
 
 import com.example.server.DTO.Request.TicketRequest;
+import com.example.server.DTO.Respone.ActiveTicketResponse;
 import com.example.server.DTO.Respone.TicketResponse;
 
 import java.util.List;
@@ -13,6 +14,6 @@ public interface TicketService {
     TicketResponse getById(Integer id);
 
     TicketResponse getBySpotId(Integer spotId);
-
+    List<ActiveTicketResponse> getActiveTickets();
 }
 

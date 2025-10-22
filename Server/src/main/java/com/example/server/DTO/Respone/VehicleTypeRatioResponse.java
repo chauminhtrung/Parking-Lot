@@ -5,7 +5,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
-
 public class VehicleTypeRatioResponse {
     private String name;
     private long value;

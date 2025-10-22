@@ -3,6 +3,7 @@ package com.example.server.Controller;
 
 
 import com.example.server.DTO.Request.TicketRequest;
+import com.example.server.DTO.Respone.ActiveTicketResponse;
 import com.example.server.DTO.Respone.TicketResponse;
 import com.example.server.Services.TicketService;
 import lombok.RequiredArgsConstructor;
@@ -43,6 +44,9 @@ public class TicketController {
         return service.getBySpotId(spotId);
     }
 
-
+    @GetMapping("/active-tickets")
+    public List<ActiveTicketResponse> getActiveTickets() {
+        return service.getActiveTickets();
+    }
 }
 

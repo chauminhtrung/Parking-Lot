@@ -17,6 +17,10 @@ public interface SummaryRepository extends JpaRepository<ParkingSpot, Integer> {
     @Query("SELECT COUNT(t) FROM Ticket t WHERE t.checkOutTime IS NULL")
     int getVehiclesParked();
 
-    @Query("SELECT COALESCE(SUM(i.totalAmount), 0) FROM Invoice i WHERE CAST(i.issueDate AS DATE) = CAST(CURRENT_DATE AS DATE)")
+    @Query(value = """
+        SELECT COALESCE(SUM(fee), 0)
+        FROM Ticket
+        WHERE CAST(checkOutTime AS date) = CAST(GETDATE() AS date)
+        """, nativeQuery = true)
     double getRevenueToday();
 }
