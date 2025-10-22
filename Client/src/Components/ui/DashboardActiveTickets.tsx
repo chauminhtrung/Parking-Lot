@@ -1,8 +1,9 @@
-import React from "react";
+import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../ui/table";
 import { Badge } from "../ui/badge";
 import { CheckCircle, Car, Wallet } from "lucide-react";
+import ticketApi, { type TicketResponse } from "../../Api/ticketApi";
 
 interface SummaryStats {
   totalSpots: number;
@@ -16,15 +17,27 @@ interface DashboardActiveTicketsProps {
   formatCurrency: (amount: number) => string;
 }
 
-const activeTickets = [
-  { ticketId: 1, plateNumber: "51A-12345", typeName: "Car", customerName: "Nguyễn Văn A", spotCode: "A1", checkInTime: "2025-10-18 07:30:00", hoursParked: 3 },
-  { ticketId: 2, plateNumber: "59X2-67890", typeName: "Motorbike", customerName: "Trần Thị B", spotCode: "B2", checkInTime: "2025-10-18 08:30:00", hoursParked: 2 },
-  { ticketId: 3, plateNumber: "67B1-11111", typeName: "Motorbike", customerName: "Lê Văn C", spotCode: "C3", checkInTime: "2025-10-18 09:30:00", hoursParked: 1 },
-  { ticketId: 4, plateNumber: "51B-22222", typeName: "Car", customerName: "Phạm Thị D", spotCode: "A2", checkInTime: "2025-10-18 06:00:00", hoursParked: 4 },
-  { ticketId: 5, plateNumber: "59C-33333", typeName: "Bicycle", customerName: "Hoàng Văn E", spotCode: "D1", checkInTime: "2025-10-18 09:00:00", hoursParked: 1 },
-];
+export default function DashboardActiveTickets({
+  summaryStats,
+  formatCurrency,
+}: DashboardActiveTicketsProps) {
+  const [activeTickets, setActiveTickets] = useState<TicketResponse[]>([]);
+  const [loading, setLoading] = useState(true);
 
-export default function DashboardActiveTickets({ summaryStats, formatCurrency }: DashboardActiveTicketsProps) {
+  useEffect(() => {
+    const fetchActiveTickets = async () => {
+      try {
+        const data = await ticketApi.getActiveTickets();
+        setActiveTickets(data);
+      } catch (error) {
+        console.error("Lỗi khi tải vé đang hoạt động:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchActiveTickets();
+  }, []);
+
   return (
     <>
       <Card className="border-0 shadow-sm">
@@ -33,51 +46,66 @@ export default function DashboardActiveTickets({ summaryStats, formatCurrency }:
           <p className="text-gray-600">Thông tin chi tiết các xe hiện đang trong bãi</p>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Biển số xe</TableHead>
-                <TableHead>Loại xe</TableHead>
-                <TableHead>Khách hàng</TableHead>
-                <TableHead>Vị trí</TableHead>
-                <TableHead>Thời gian vào</TableHead>
-                <TableHead className="text-right">Giờ đã đỗ</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {activeTickets.map((ticket) => (
-                <TableRow key={ticket.ticketId}>
-                  <TableCell>
-                    <span className="text-blue-600">{ticket.plateNumber}</span>
-                  </TableCell>
-                  <TableCell>
-                    <Badge
-                      variant="outline"
-                      className={
-                        ticket.typeName === "Car"
-                          ? "border-blue-200 bg-blue-50 text-blue-700"
-                          : ticket.typeName === "Motorbike"
-                          ? "border-purple-200 bg-purple-50 text-purple-700"
-                          : "border-green-200 bg-green-50 text-green-700"
-                      }
-                    >
-                      {ticket.typeName}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>{ticket.customerName}</TableCell>
-                  <TableCell>
-                    <Badge variant="secondary">{ticket.spotCode}</Badge>
-                  </TableCell>
-                  <TableCell className="text-gray-600">
-                    {new Date(ticket.checkInTime).toLocaleString("vi-VN")}
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <span className="text-gray-900">{ticket.hoursParked}h</span>
-                  </TableCell>
+          {loading ? (
+            <p className="text-gray-500 text-center py-6">Đang tải dữ liệu...</p>
+          ) : activeTickets.length === 0 ? (
+            <p className="text-gray-500 text-center py-6">Không có xe nào đang đỗ</p>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Biển số xe</TableHead>
+                  <TableHead>Loại xe</TableHead>
+                  <TableHead>Khách hàng</TableHead>
+                  <TableHead>Vị trí</TableHead>
+                  <TableHead>Thời gian vào</TableHead>
+                  <TableHead className="text-right">Giờ đã đỗ</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {activeTickets.map((ticket) => {
+                  const hoursParked = ticket.checkInTime
+                    ? Math.floor(
+                        (Date.now() - new Date(ticket.checkInTime).getTime()) / (1000 * 60 * 60)
+                      )
+                    : 0;
+                  return (
+                    <TableRow key={ticket.ticketId}>
+                      <TableCell>
+                        <span className="text-blue-600">{ticket.plateNumber}</span>
+                      </TableCell>
+                      <TableCell>
+                        <Badge
+                          variant="outline"
+                          className={
+                            ticket.typeName === "Car"
+                              ? "border-blue-200 bg-blue-50 text-blue-700"
+                              : ticket.typeName === "Motorbike"
+                              ? "border-purple-200 bg-purple-50 text-purple-700"
+                              : "border-green-200 bg-green-50 text-green-700"
+                          }
+                        >
+                          {ticket.typeName || "Khác"}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>{ticket.customerName || "-"}</TableCell>
+                      <TableCell>
+                        <Badge>{ticket.spotCode || "-"}</Badge>
+                      </TableCell>
+                      <TableCell className="text-gray-600">
+                        {ticket.checkInTime
+                          ? new Date(ticket.checkInTime).toLocaleString("vi-VN")
+                          : "-"}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <span className="text-gray-900">{hoursParked}h</span>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          )}
         </CardContent>
       </Card>
 

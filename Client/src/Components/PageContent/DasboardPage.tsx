@@ -32,7 +32,6 @@ export default function DashboardPage({ user: _user }: DashboardPageProps) {
         setLoading(true);
         setError(null);
 
-        // ✅ summaryApi.getSummary() đã trả về trực tiếp SummaryStats
         const data = await summaryApi.getSummary();
         setSummaryStats(data);
       } catch (error) {
@@ -48,11 +47,11 @@ export default function DashboardPage({ user: _user }: DashboardPageProps) {
   }, []);
 
   if (loading) {
-    return (
+  return (
       <div className="flex items-center justify-center min-h-[60vh] text-gray-600">
         <Loader2 className="animate-spin w-6 h-6 mr-2" />
         Đang tải dữ liệu Dashboard...
-      </div>
+        </div>
     );
   }
 
@@ -61,32 +60,32 @@ export default function DashboardPage({ user: _user }: DashboardPageProps) {
       <div className="flex flex-col items-center justify-center min-h-[60vh] text-red-600">
         <p className="font-medium mb-2">Không thể tải dữ liệu Dashboard.</p>
         <p className="text-sm text-gray-500">{error}</p>
-      </div>
+              </div>
     );
   }
 
   return (
     <>
-      {user ? (
-    <div className="w-full h-full overflow-y-auto p-2">
-      {/* Main Content */}
-      <main className="p-6 w-full">
-        
+      {_user ? (
+        <div className="w-full h-full overflow-y-auto p-2">
+          {/* Main Content */}
+          <main className="p-6 w-full">
+            
 
-        {/* Summary Cards */}
-        <DashboardSummaryCards
-          summaryStats={summaryStats}
-          formatCurrency={formatCurrency}
-        />
+            {/* Summary Cards */}
+            <DashboardSummaryCards
+              summaryStats={summaryStats}
+              formatCurrency={formatCurrency}
+            />
 
         {/* Charts Section */}
-        <DashboardCharts formatCurrency={formatCurrency} />
+            <DashboardCharts formatCurrency={formatCurrency} />
 
         {/* Active Tickets Table */}
-        <DashboardActiveTickets
-          summaryStats={summaryStats}
-          formatCurrency={formatCurrency}
-        />
+            <DashboardActiveTickets
+              summaryStats={summaryStats}
+              formatCurrency={formatCurrency}
+            />
       </main>
     </div>
       ) : (
