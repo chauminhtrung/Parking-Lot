@@ -19,9 +19,15 @@ import type { MonthlyRevenueResponse, VehicleTypeRatioResponse } from "../../Api
 
 interface DashboardChartsProps {
   formatCurrency: (amount: number) => string;
+  accountId: number; // ✅ Thêm prop accountId
+  year?: number; // ✅ Optional: năm cần query
 }
 
-export default function DashboardCharts({ formatCurrency }: DashboardChartsProps) {
+export default function DashboardCharts({ 
+  formatCurrency, 
+  accountId,
+  year = 2025 // Default năm 2025
+}: DashboardChartsProps) {
   // State management
   const [monthlyData, setMonthlyData] = useState<MonthlyRevenueResponse[]>([]);
   const [vehicleData, setVehicleData] = useState<VehicleTypeRatioResponse[]>([]);
@@ -35,10 +41,10 @@ export default function DashboardCharts({ formatCurrency }: DashboardChartsProps
         setLoading(true);
         setError(null);
 
-        // Call API song song để tăng tốc độ
+        // ✅ Truyền accountId vào cả 2 API calls
         const [revenueData, vehicleDistribution] = await Promise.all([
-          analyticsApi.getMonthlyRevenue(2025),
-          analyticsApi.getVehicleDistribution()
+          analyticsApi.getMonthlyRevenue(accountId, year),
+          analyticsApi.getVehicleDistribution(accountId)
         ]);
 
         // Map màu cho vehicle data
@@ -59,7 +65,7 @@ export default function DashboardCharts({ formatCurrency }: DashboardChartsProps
     };
 
     fetchData();
-  }, []);
+  }, [accountId, year]); // ✅ Thêm dependencies
 
   // Helper function: Lấy màu theo loại xe
   const getVehicleColor = (name: string): string => {
@@ -153,7 +159,7 @@ export default function DashboardCharts({ formatCurrency }: DashboardChartsProps
       {/* Line Chart - Doanh thu theo tháng */}
       <Card className="lg:col-span-2 border-0 shadow-sm">
         <CardHeader>
-          <CardTitle className="text-gray-900">Doanh thu theo tháng</CardTitle>
+          <CardTitle className="text-gray-900">Doanh thu theo tháng - Năm {year}</CardTitle>
           <p className="text-gray-600">Biểu đồ so sánh doanh thu các loại xe</p>
         </CardHeader>
         <CardContent>

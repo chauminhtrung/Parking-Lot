@@ -6,6 +6,7 @@ import java.util.List;
 
 public interface AnalyticsService {
 
-    List<MonthlyRevenueResponse> getMonthlyRevenueForYear(int year);
-    List<VehicleTypeRatioResponse> getActiveVehicleTypeDistribution();
+    List<MonthlyRevenueResponse> getMonthlyRevenueForYear(int year, int accountId);
+
+    List<VehicleTypeRatioResponse> getActiveVehicleTypeDistribution(int accountId);
 }

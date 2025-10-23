@@ -14,6 +14,8 @@ public interface TicketService {
     TicketResponse getById(Integer id);
 
     TicketResponse getBySpotId(Integer spotId);
-    List<ActiveTicketResponse> getActiveTickets();
+    List<ActiveTicketResponse> getActiveTicketsByAccount(Integer accountId);
+    List<TicketResponse> getTicketsByAccount(Integer accountId);
+
 }
 

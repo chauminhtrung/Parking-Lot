@@ -140,24 +140,46 @@ public class TicketServiceImpl implements TicketService {
     }
 
     @Override
-    public List<ActiveTicketResponse> getActiveTickets() {
-        List<Object[]> rows = ticketRepository.getActiveTickets();
+    public List<ActiveTicketResponse> getActiveTicketsByAccount(Integer accountId) {
+        List<Object[]> rows = ticketRepository.getActiveTicketsByAccount(accountId);
         List<ActiveTicketResponse> result = new ArrayList<>();
 
         for (Object[] row : rows) {
             ActiveTicketResponse dto = new ActiveTicketResponse(
-                    ((Number) row[0]).intValue(),
-                    (String) row[1],
-                    (String) row[2],
-                    (String) row[3],
-                    (String) row[4],
-                    (String) row[5],
-                    ((Number) row[6]).intValue()
+                    ((Number) row[0]).intValue(), // ticketId
+                    (String) row[1],              // plateNumber
+                    (String) row[2],              // typeName
+                    (String) row[3],              // customerName
+                    (String) row[4],              // spotCode
+                    (String) row[5],              // checkInTime
+                    ((Number) row[6]).intValue()  // hoursParked
             );
+            result.add(dto);
+        }
+        return result;
+    }
+    @Override
+    public List<TicketResponse> getTicketsByAccount(Integer accountId) {
+        List<Object[]> rows = ticketRepository.getTicketsByAccount(accountId);
+        List<TicketResponse> result = new ArrayList<>();
+
+        for (Object[] row : rows) {
+            TicketResponse dto = new TicketResponse();
+            dto.setTicketId(((Number) row[0]).intValue());
+            dto.setPlateNumber((String) row[1]);
+            dto.setTypeName((String) row[2]);
+            dto.setCustomerName((String) row[3]);
+            dto.setSpotCode((String) row[4]);
+            dto.setEmployeeName((String) row[5]);
+            dto.setCheckInTime((String) row[6]);
+            dto.setCheckOutTime((String) row[7]);
+            dto.setFee(row[8] != null ? ((Number) row[8]).doubleValue() : 0.0);
             result.add(dto);
         }
 
         return result;
     }
+
+
 
 }
