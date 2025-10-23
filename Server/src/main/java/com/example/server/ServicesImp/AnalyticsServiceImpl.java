@@ -23,64 +23,45 @@ public class AnalyticsServiceImpl implements AnalyticsService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<MonthlyRevenueResponse> getMonthlyRevenueForYear(int year) {
-        logger.info("📊 Fetching monthly revenue for year: {}", year);
+    public List<MonthlyRevenueResponse> getMonthlyRevenueForYear(int year, int accountId) {
+        logger.info("📊 Fetching monthly revenue for year {} of account {}", year, accountId);
 
-        List<Object[]> rows = analyticsRepository.getMonthlyRevenueByYear(year);
-        logger.info("✅ Found {} months with data", rows.size());
-
-        // Log raw data để debug
-        for (Object[] row : rows) {
-            logger.debug("Month: {}, Car: {}, Motorbike: {}, Truck: {}",
-                    row[0], row[1], row[2], row[3]);
-        }
-
-        // Khởi tạo 12 tháng với giá trị 0
+        List<Object[]> rows = analyticsRepository.getMonthlyRevenueByYear(year, accountId);
         Map<Integer, MonthlyRevenueResponse> monthMap = new LinkedHashMap<>();
+
         for (int m = 1; m <= 12; m++) {
             monthMap.put(m, new MonthlyRevenueResponse("Tháng " + m, 0L, 0L, 0L));
         }
 
-        // Fill dữ liệu thực tế
         for (Object[] row : rows) {
-            Integer monthNum = ((Number) row[0]).intValue();
-            long car = row[1] == null ? 0L : ((Number) row[1]).longValue();
-            long motorbike = row[2] == null ? 0L : ((Number) row[2]).longValue();
-            long truck = row[3] == null ? 0L : ((Number) row[3]).longValue();
+            int month = ((Number) row[0]).intValue();
+            long car = ((Number) row[1]).longValue();
+            long motorbike = ((Number) row[2]).longValue();
+            long truck = ((Number) row[3]).longValue();
 
-            monthMap.put(monthNum, new MonthlyRevenueResponse("Tháng " + monthNum, car, motorbike, truck));
+            monthMap.put(month, new MonthlyRevenueResponse("Tháng " + month, car, motorbike, truck));
         }
 
-        List<MonthlyRevenueResponse> result = new ArrayList<>(monthMap.values());
-        logger.info("📦 Returning {} months of data", result.size());
-
-        return result;
+        return new ArrayList<>(monthMap.values());
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<VehicleTypeRatioResponse> getActiveVehicleTypeDistribution() {
-        logger.info("🚗 Fetching vehicle distribution");
+    public List<VehicleTypeRatioResponse> getActiveVehicleTypeDistribution(int accountId) {
+        logger.info("🚗 Fetching active vehicle distribution for account {}", accountId);
 
-        List<Object[]> rows = analyticsRepository.getActiveVehicleCountByType();
-        logger.info("✅ Found {} vehicle types", rows.size());
-
-        Map<String, VehicleTypeRatioResponse> typeMap = new LinkedHashMap<>();
-        typeMap.put("Car", new VehicleTypeRatioResponse("Car", 0L));
-        typeMap.put("Motorbike", new VehicleTypeRatioResponse("Motorbike", 0L));
-        typeMap.put("Truck", new VehicleTypeRatioResponse("Truck", 0L));
+        List<Object[]> rows = analyticsRepository.getActiveVehicleCountByType(accountId);
+        Map<String, VehicleTypeRatioResponse> map = new LinkedHashMap<>();
+        map.put("Car", new VehicleTypeRatioResponse("Car", 0));
+        map.put("Motorbike", new VehicleTypeRatioResponse("Motorbike", 0));
+        map.put("Truck", new VehicleTypeRatioResponse("Truck", 0));
 
         for (Object[] row : rows) {
-            String typeName = row[0] == null ? "Unknown" : row[0].toString();
-            long count = row[1] == null ? 0L : ((Number) row[1]).longValue();
-
-            logger.debug("Type: {}, Count: {}", typeName, count);
-
-            if (typeMap.containsKey(typeName)) {
-                typeMap.put(typeName, new VehicleTypeRatioResponse(typeName, count));
-            }
+            String name = row[0].toString();
+            long count = ((Number) row[1]).longValue();
+            map.put(name, new VehicleTypeRatioResponse(name, count));
         }
 
-        return new ArrayList<>(typeMap.values());
+        return new ArrayList<>(map.values());
     }
 }

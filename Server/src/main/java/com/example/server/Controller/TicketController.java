@@ -44,9 +44,15 @@ public class TicketController {
         return service.getBySpotId(spotId);
     }
 
-    @GetMapping("/active-tickets")
-    public List<ActiveTicketResponse> getActiveTickets() {
-        return service.getActiveTickets();
+    @GetMapping("/active-tickets/{accountId}")
+    public List<ActiveTicketResponse> getActiveTicketsByAccount(@PathVariable Integer accountId) {
+        return service.getActiveTicketsByAccount(accountId);
     }
+    @GetMapping("/by-account/{accountId}")
+    public List<TicketResponse> getTicketsByAccount(@PathVariable Integer accountId) {
+        return service.getTicketsByAccount(accountId);
+    }
+
+
 }
 

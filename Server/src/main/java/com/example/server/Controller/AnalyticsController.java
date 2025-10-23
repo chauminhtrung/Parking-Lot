@@ -5,8 +5,10 @@ import com.example.server.DTO.Respone.VehicleTypeRatioResponse;
 import com.example.server.Services.AnalyticsService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
 import java.time.Year;
 import java.util.List;
+
 @RestController
 @RequestMapping("/api/analytics")
 @CrossOrigin(origins = "*")
@@ -20,16 +22,19 @@ public class AnalyticsController {
 
     @GetMapping("/monthly-revenue")
     public ResponseEntity<List<MonthlyRevenueResponse>> getMonthlyRevenue(
-            @RequestParam(required = false) Integer year
+            @RequestParam(required = false) Integer year,
+            @RequestParam int accountId
     ) {
         int targetYear = (year != null) ? year : Year.now().getValue();
-        List<MonthlyRevenueResponse> data = analyticsService.getMonthlyRevenueForYear(targetYear);
+        List<MonthlyRevenueResponse> data = analyticsService.getMonthlyRevenueForYear(targetYear, accountId);
         return ResponseEntity.ok(data);
     }
 
     @GetMapping("/vehicle-distribution")
-    public ResponseEntity<List<VehicleTypeRatioResponse>> getVehicleDistribution() {
-        List<VehicleTypeRatioResponse> data = analyticsService.getActiveVehicleTypeDistribution();
+    public ResponseEntity<List<VehicleTypeRatioResponse>> getVehicleDistribution(
+            @RequestParam int accountId
+    ) {
+        List<VehicleTypeRatioResponse> data = analyticsService.getActiveVehicleTypeDistribution(accountId);
         return ResponseEntity.ok(data);
     }
 
@@ -38,4 +43,3 @@ public class AnalyticsController {
         return ResponseEntity.ok("Analytics API is running");
     }
 }
-

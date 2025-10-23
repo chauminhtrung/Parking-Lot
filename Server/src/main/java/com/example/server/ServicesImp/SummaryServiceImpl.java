@@ -18,11 +18,11 @@ public class SummaryServiceImpl implements SummaryService {
 
     @Override
     @Transactional(readOnly = true)
-    public SummaryStats getSummaryStats() {
-        int total = repo.getTotalSpots();
-        int empty = repo.getEmptySpots();
-        int parked = repo.getVehiclesParked();
-        double revenue = repo.getRevenueToday();
+    public SummaryStats getSummaryStats(int accountId) {
+        int total = repo.getTotalSpots(accountId);
+        int empty = repo.getEmptySpots(accountId);
+        int parked = repo.getVehiclesParked(accountId);
+        double revenue = repo.getRevenueToday(accountId);
 
         double occupancyRate = (total > 0)
                 ? ((double) parked / total) * 100.0
