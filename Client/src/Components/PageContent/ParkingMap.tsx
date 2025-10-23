@@ -166,6 +166,9 @@ const handleUpdateVehicle = async () => {
     }
 
     toast.success("Cập nhật thông tin xe và khách hàng thành công!");
+            setTimeout(() => {
+  window.location.reload();
+}, 1000); // đợi 1 giây cho toast hiển thị rồi reload
   } catch (error) {
     console.error("❌ Lỗi khi cập nhật:", error);
     toast.error("Không thể cập nhật thông tin!");

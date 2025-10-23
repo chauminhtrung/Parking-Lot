@@ -91,10 +91,10 @@ return (
       <div className="w-full max-w-sm space-y-8">
         <div className="text-center">
           <h1 className="text-3xl font-bold text-gray-800">
-            Welcome to Parking lot 👋🏻
+            Chào mừng tới Parking lot 👋🏻
           </h1>
           <p className="text-gray-500 mt-2">
-            Please sign in to your account and start the adventure
+           Hãy đăng nhập bằng tài khoản của bạn và trải nghiệm
           </p>
         </div>
 
@@ -145,7 +145,7 @@ return (
             type="submit"
             className="w-full bg-gradient-to-r from-[#503EE1] to-[#6A63F0]  text-white py-2 rounded-lg font-medium transition"
           >
-            Login
+            Đăng nhập
           </button>
         </form>
 
