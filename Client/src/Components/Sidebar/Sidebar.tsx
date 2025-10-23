@@ -89,18 +89,19 @@ const SettingsIcon = () => (
 )
 
 const menuItems = [
-  { id: "dashboard", label: "Dashboard", icon: HomeIcon, active: false },
-  { id: "booking", label: "Booking", icon: CalendarIcon, active: false },
-  { id: "parkingmap", label: "Parking spaces", icon: ParkingIcon, active: true },
-  { id: "reports", label: "Reports", icon: ChartIcon, active: false },
+  { id: "dashboard", label: "Trang tổng quan", icon: HomeIcon, active: false },
+  { id: "booking", label: "Đặt chỗ", icon: CalendarIcon, active: false },
+  { id: "parkingmap", label: "Chỗ đậu xe", icon: ParkingIcon, active: true },
+  { id: "reports", label: "Thống kê", icon: ChartIcon, active: false },
   { id: "problems", label: "Problems", icon: AlertIcon, active: false },
-  { id: "roles", label: "Roles and permissions", icon: UsersIcon, active: false },
-  { id: "manage-floors", label: "Manage floors", icon: SettingsIcon, active: false },
+  { id: "roles", label: "Phân quyền", icon: UsersIcon, active: false },
+  { id: "manage-floors", label: "Quản lý tầng", icon: SettingsIcon, active: false },
 ]
 
 export default function Sidebar({ onManageFloors, user }: SidebarProps) {
   const [activeItem, setActiveItem] = useState("parkingmap")
   const navigate = useNavigate();
+  
 const { lotId } = useParams<{ lotId: string }>();
 
 

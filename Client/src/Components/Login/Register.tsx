@@ -90,10 +90,10 @@ const [username, setUsername] = useState("");
         <div className="w-full max-w-sm space-y-8">
           <div className="text-center">
             <h1 className="text-3xl font-bold text-gray-800">
-              Create Account ✨
+              Tạo tài khoản ✨
             </h1>
-            <p className="text-gray-500 mt-2">
-              Please fill in the details to create your account
+            <p className="text-gray-500 mt-2">        
+        Vui lòng điền thông tin để tạo tài khoản của bạn
             </p>
           </div>
 
@@ -154,7 +154,7 @@ const [username, setUsername] = useState("");
               type="submit"
               className="w-full bg-gradient-to-r from-[#503EE1] to-[#6A63F0] hover:bg-blue-700 text-white py-2 rounded-lg font-medium transition"
             >
-              Sign Up
+              Đăng ký
             </button>
           </form>
 

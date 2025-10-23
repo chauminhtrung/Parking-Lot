@@ -433,7 +433,7 @@ export default function ReportPage({
                 <div className="flex gap-2">
                   <Button
                     onClick={exportToExcel}
-                    className="flex items-center gap-2"
+                    className="flex items-center gap-2 text-white "
                   >
                     <Download className="h-4 w-4" />
                     Xuất Excel

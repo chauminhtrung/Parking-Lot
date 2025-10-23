@@ -234,7 +234,7 @@ const handleCreateParkingLot = async () => {
               }}
               className="w-full bg-red-500 hover:bg-red-600 text-white text-xs py-1 rounded transition"
             >
-              Logout
+              Đăng xuất
             </button>
 
             {/* 🟢 Nút Tổng bãi xe */}
