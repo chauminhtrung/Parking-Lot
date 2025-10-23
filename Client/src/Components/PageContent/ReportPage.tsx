@@ -51,7 +51,6 @@ export default function ReportPage({
   user,
   setUser: _setUser,
 }: ReportPageProps) {
-  // Note: setUser parameter is kept for future functionality but not currently used
   void _setUser;
   const [tickets, setTickets] = useState<TicketResponse[]>([]);
   const [filteredTickets, setFilteredTickets] = useState<TicketResponse[]>([]);
@@ -66,20 +65,23 @@ export default function ReportPage({
     sortOrder: "desc",
   });
 
-  // Fetch tickets data
-  const fetchTickets = async () => {
-    try {
-      setLoading(true);
-      const data = await ticketApi.getAllTickets();
-      setTickets(data);
-      setFilteredTickets(data);
-    } catch (error) {
-      console.error("Error fetching tickets:", error);
-      toast.error("Không thể tải dữ liệu báo cáo");
-    } finally {
-      setLoading(false);
-    }
-  };
+ // Fetch tickets data
+ const fetchTickets = async () => {
+  if (!user) return;
+  try {
+    setLoading(true);
+    const data = await ticketApi.getByAccount(user.accountId); 
+    setTickets(data);
+    setFilteredTickets(data);
+  } catch (error) {
+    console.error("Error fetching tickets:", error);
+    toast.error("Không thể tải dữ liệu báo cáo");
+  } finally {
+    setLoading(false);
+  }
+};
+
+
 
   useEffect(() => {
     fetchTickets();

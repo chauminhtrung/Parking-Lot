@@ -11,8 +11,13 @@ export interface SummaryStats {
 }
 
 const summaryApi = {
-  getSummary: async (): Promise<SummaryStats> =>
-    (await axios.get(BASE_URL)).data,
+  // ✅ Gọi API có truyền accountId
+  getSummary: async (accountId: number): Promise<SummaryStats> => {
+    const response = await axios.get(BASE_URL, {
+      params: { accountId },
+    });
+    return response.data;
+  },
 };
 
 export default summaryApi;

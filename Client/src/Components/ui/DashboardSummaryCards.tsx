@@ -34,7 +34,7 @@ export default function DashboardSummaryCards({
         </CardHeader>
         <CardContent>
           <div className="text-gray-900 mb-2">
-            {summaryStats.totalSpots} spots
+            {summaryStats.totalSpots} chỗ đỗ
           </div>
           <Progress value={100} className="h-2 bg-blue-100" />
           <p className="text-xs text-gray-500 mt-2">Tổng số chỗ trong bãi</p>
@@ -51,7 +51,7 @@ export default function DashboardSummaryCards({
         </CardHeader>
         <CardContent>
           <div className="text-gray-900 mb-2">
-            {summaryStats.emptySpots} spots
+            {summaryStats.emptySpots} chỗ đỗ
           </div>
           <Progress
             value={(summaryStats.emptySpots / summaryStats.totalSpots) * 100}
@@ -73,7 +73,7 @@ export default function DashboardSummaryCards({
         </CardHeader>
         <CardContent>
           <div className="text-gray-900 mb-2">
-            {summaryStats.vehiclesParked} vehicles
+            {summaryStats.vehiclesParked} xe
           </div>
           <Progress
             value={(summaryStats.vehiclesParked / summaryStats.totalSpots) * 100}

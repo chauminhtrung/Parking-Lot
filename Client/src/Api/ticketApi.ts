@@ -47,9 +47,11 @@ const ticketApi = {
 getActiveTicketBySpot: async (spotId: number) =>
   (await axios.get<TicketResponse>(`${BASE_URL}/active/${spotId}`)).data,
 
-getActiveTickets: async () =>
-  (await axios.get<TicketResponse[]>(`${BASE_URL}/active-tickets`)).data,
+getActiveTicketsByAccount: async (accountId: number) =>
+  (await axios.get<TicketResponse[]>(`${BASE_URL}/active-tickets/${accountId}`)).data,
 
+getByAccount: async (accountId: number) =>
+  (await axios.get<TicketResponse[]>(`${BASE_URL}/by-account/${accountId}`)).data,
 
 
 };

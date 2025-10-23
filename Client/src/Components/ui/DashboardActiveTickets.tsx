@@ -14,20 +14,25 @@ interface SummaryStats {
 
 interface DashboardActiveTicketsProps {
   summaryStats: SummaryStats;
+  accountId: number; 
   formatCurrency: (amount: number) => string;
 }
 
+
 export default function DashboardActiveTickets({
   summaryStats,
+  accountId,
   formatCurrency,
 }: DashboardActiveTicketsProps) {
+
   const [activeTickets, setActiveTickets] = useState<TicketResponse[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchActiveTickets = async () => {
       try {
-        const data = await ticketApi.getActiveTickets();
+        setLoading(true);
+        const data = await ticketApi.getActiveTicketsByAccount(accountId);
         setActiveTickets(data);
       } catch (error) {
         console.error("Lỗi khi tải vé đang hoạt động:", error);
@@ -36,7 +41,9 @@ export default function DashboardActiveTickets({
       }
     };
     fetchActiveTickets();
-  }, []);
+  }, [accountId]);
+  
+  
 
   return (
     <>

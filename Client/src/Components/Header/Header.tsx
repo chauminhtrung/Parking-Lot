@@ -84,7 +84,7 @@ export default function Header({
             <MenuIcon />
           </button>
 
-          <span className="text-sm font-medium text-gray-600 hidden sm:block">Floor</span>
+          <span className="text-sm font-medium text-gray-600 hidden sm:block">Tầng</span>
           <div className="flex items-center space-x-2">
             <div className="flex items-center space-x-1 overflow-x-auto">
               {floors.map((floor, index) => (
@@ -122,13 +122,13 @@ export default function Header({
             <div className="flex items-center space-x-1 md:space-x-2">
               <div className="w-3 h-3 bg-green-300 border-green-400 rounded-full"></div>
               <span className="font-medium text-gray-700">{stats.filled}</span>
-              <span className="text-gray-500 hidden sm:inline">Filled</span>
+              <span className="text-gray-500 hidden sm:inline">Đã đỗ</span>
             </div>
             
             <div className="flex items-center space-x-1 md:space-x-2">
               <div className="w-3 h-3 bg-gray-300 rounded-full"></div>
               <span className="font-medium text-gray-700">{stats.empty}</span>
-              <span className="text-gray-500 hidden sm:inline">Empty</span>
+              <span className="text-gray-500 hidden sm:inline">Trống</span>
             </div>
           </div>
 
@@ -144,7 +144,7 @@ export default function Header({
 
           {/* Report Problem Button */}
           <button className="px-3 md:px-4 py-2 bg-gradient-to-r from-[#a9a4eb] to-[#6A63F0] hover:bg-blue-600 text-white text-sm font-medium rounded-lg transition-colors">
-            <span className="hidden sm:inline">Report Problem</span>
+            <span className="hidden sm:inline">Báo cáo sự cố</span>
             <span className="sm:hidden">Report</span>
           </button>
         </div>

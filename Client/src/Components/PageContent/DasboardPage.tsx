@@ -12,14 +12,16 @@ interface DashboardPageProps {
   setUser: React.Dispatch<React.SetStateAction<User | null>>;
 }
 
-export default function DashboardPage({ user: _user }: DashboardPageProps) {
-  // Note: user parameter is kept for future functionality but not currently used
-  void _user;
+export default function DashboardPage({ user }: DashboardPageProps) {
   const [summaryStats, setSummaryStats] = useState<SummaryStats | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Định dạng tiền VND
+  // ✅ Lấy accountId từ user hoặc localStorage
+  const accountId = user?.accountId || Number(localStorage.getItem("accountId")) || 1;
+  const currentYear = new Date().getFullYear(); // 2025
+
+  // ✅ Định dạng tiền tệ
   const formatCurrency = (amount: number): string =>
     new Intl.NumberFormat("vi-VN", {
       style: "currency",
@@ -32,7 +34,7 @@ export default function DashboardPage({ user: _user }: DashboardPageProps) {
         setLoading(true);
         setError(null);
 
-        const data = await summaryApi.getSummary();
+        const data = await summaryApi.getSummary(accountId);
         setSummaryStats(data);
       } catch (error) {
         console.error("Lỗi khi lấy dữ liệu dashboard:", error);
@@ -44,14 +46,14 @@ export default function DashboardPage({ user: _user }: DashboardPageProps) {
     };
 
     fetchSummary();
-  }, []);
+  }, [accountId]); // ✅ Thêm accountId vào dependency
 
   if (loading) {
-  return (
+    return (
       <div className="flex items-center justify-center min-h-[60vh] text-gray-600">
         <Loader2 className="animate-spin w-6 h-6 mr-2" />
         Đang tải dữ liệu Dashboard...
-        </div>
+      </div>
     );
   }
 
@@ -60,38 +62,35 @@ export default function DashboardPage({ user: _user }: DashboardPageProps) {
       <div className="flex flex-col items-center justify-center min-h-[60vh] text-red-600">
         <p className="font-medium mb-2">Không thể tải dữ liệu Dashboard.</p>
         <p className="text-sm text-gray-500">{error}</p>
-              </div>
+      </div>
     );
   }
 
-  return (
-    <>
-      {_user ? (
-        <div className="w-full h-full overflow-y-auto p-2">
-          {/* Main Content */}
-          <main className="p-6 w-full">
-            
+  return user ? (
+    <div className="w-full h-full overflow-y-auto p-2">
+      <main className="p-6 w-full">
+        {/* Summary Cards */}
+        <DashboardSummaryCards
+          summaryStats={summaryStats}
+          formatCurrency={formatCurrency}
+        />
 
-            {/* Summary Cards */}
-            <DashboardSummaryCards
-              summaryStats={summaryStats}
-              formatCurrency={formatCurrency}
-            />
-
-        {/* Charts Section */}
-            <DashboardCharts formatCurrency={formatCurrency} />
+        {/* Charts Section - ✅ TRUYỀN accountId và year */}
+        <DashboardCharts 
+          formatCurrency={formatCurrency}
+          accountId={accountId}
+          year={currentYear}
+        />
 
         {/* Active Tickets Table */}
-            <DashboardActiveTickets
-              summaryStats={summaryStats}
-              formatCurrency={formatCurrency}
-            />
+        <DashboardActiveTickets
+          summaryStats={summaryStats}
+          accountId={accountId}
+          formatCurrency={formatCurrency}
+        />
       </main>
     </div>
-      ) : (
-        <h2 className="text-xl text-gray-500">Chưa đăng nhập</h2>
-      )}
-    </>
-
+  ) : (
+    <h2 className="text-xl text-gray-500 text-center mt-20">Chưa đăng nhập</h2>
   );
 }
