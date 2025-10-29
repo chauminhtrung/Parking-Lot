@@ -44,6 +44,8 @@ interface Slot {
   spotId?: number;       // id thực từ DB (nếu có)
   status?: string;       // 'Empty' / 'Occupied'
   vehicleIcon?: string;
+plateNumber?: string;
+
 }
 
 interface ZoneS2 extends Zone {  // kế thừa Zone
@@ -64,6 +66,8 @@ const ParkingMap: React.FC<ParkingMapProps> = ({ user, setUser }) => {
   const [selectedZones, setSelectedZones] = useState<number | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const { lotId, floor } = useParams<{ lotId: string; floor?: string }>();
+  const [showSearch, setShowSearch] = useState(false);
+const [searchText, setSearchText] = useState("");
   const [zones, setZones] = useState<ZoneS2[]>([]);
 const [loading, setLoading] = useState(false);
 const navigate = useNavigate();
@@ -74,6 +78,8 @@ const [carPhone, setCarPhone] = useState("");
 const [selectedSlotCount, setSelectedSlotCount] = useState<number | null>(null);
 const [isOccupied, setIsOccupied] = useState(false);
 const [activeTicket, setActiveTicket] = useState<any>(null);
+const [highlightedPlates, setHighlightedPlates] = useState<string[]>([]);
+
 const [customerData, setCustomerData] = useState({
   customerId: null,
   name: "",
@@ -258,6 +264,17 @@ const handleCreateVehicle = async () => {
 };
 
 
+const normalizePlate = (plate: string) => {
+  return plate
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, ""); // giữ lại chữ + số, bỏ ký tự đặc biệt
+};
+
+
+
+
+
+
 const handleSaveSlotCount = async () => { 
   if (!selectedZone || selectedSlotCount === null) return;
 
@@ -308,33 +325,33 @@ const fetchZones = async () => {
       areaData.map(async (area: any, idx: number) => {
         const spotsFromApi: any[] = spotsResults[idx] || [];
 
-        // 🟢 Kiểm tra vé đang hoạt động cho từng spot
         const slots: Slot[] = await Promise.all(
           spotsFromApi.map(async (s) => {
-            let vehicleIcon = undefined;
-              try {
-                const activeTicket = await ticketApi.getActiveTicketBySpot(s.spotId);
-                if (activeTicket) {
-                  // Lấy thông tin xe theo biển số
-                  const vehicle = await vehicleApi.getVehicleByPlate(activeTicket.plateNumber);
-                    console.log(vehicle);
-                    
-                  // Kiểm tra loại xe (vehicleTypeId)
-                  const typeId = vehicle?.vehicleType
-                  if (typeId === "Car") vehicleIcon = caricon;
-                  else if (typeId  === "Motorbike") vehicleIcon = motoicon;
-                  else if (typeId  === "Truck") vehicleIcon = truckicon;
-                }
-              } catch (err) {
-      
-              }
+            let vehicleIcon;
+            let plateNumber: string | undefined;
 
+            try {
+              const activeTicket = await ticketApi.getActiveTicketBySpot(s.spotId);
+              if (activeTicket) {
+                const vehicle = await vehicleApi.getVehicleByPlate(activeTicket.plateNumber);
+
+                const typeId = vehicle?.vehicleType;
+                if (typeId === "Car") vehicleIcon = caricon;
+                else if (typeId === "Motorbike") vehicleIcon = motoicon;
+                else if (typeId === "Truck") vehicleIcon = truckicon;
+
+               plateNumber = vehicle?.plateNumber?.trim();
+          
+            
+              }
+            } catch {}
 
             return {
               id: s.spotCode,
               spotId: s.spotId,
               status: vehicleIcon ? "occupied" : s.status,
               vehicleIcon,
+              plateNumber
             };
           })
         );
@@ -361,7 +378,7 @@ const fetchZones = async () => {
           left,
           right,
           spots: slots,
-           floorId: floorData.floorId, // ✅ thêm đây
+          floorId: floorData.floorId,
         } as ZoneS2;
       })
     );
@@ -373,6 +390,7 @@ const fetchZones = async () => {
     setLoading(false);
   }
 };
+
 
 
 useEffect(() => {
@@ -679,18 +697,22 @@ const getSlotStyle = (slot?: Slot) => {
   if (!slot) return "";
 
   const status = slot.status?.toLowerCase();
+  const isHighlighted = slot.plateNumber && highlightedPlates.includes(slot.plateNumber);
+
+  if (isHighlighted) return "border-yellow-400 animate-blink-yellow";
 
   if (filterStatus === "Chưa có" && status === "empty") {
-   return "border-red-400 animate-blink-red";
+    return "border-red-400 animate-blink-red";
   } 
   if (filterStatus === "Đã gửi" && status === "occupied") {
-      return "border-green-400 animate-blink-green";
+    return "border-green-400 animate-blink-green";
   } 
 
   return status === "occupied"
     ? "bg-green-100 border-green-400"
     : "bg-white border-gray-200";
 };
+
 
 
   const getSlotIcon = (slot?: Slot) => {
@@ -979,41 +1001,114 @@ return (
         )}
 
          {/* Modal */}
-      {showModal && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black/40 z-50">
-          <div className="bg-white rounded-lg shadow-lg w-[300px] p-5 animate-fadeIn">
-            <h2 className="text-lg font-semibold mb-3 text-center">
-              Chọn trạng thái
-            </h2>
-            <div className="flex flex-col gap-3">
-              <button
-                className="py-2 px-4 bg-green-100 rounded hover:bg-green-200"
-                onClick={() => handleSelect("Đã gửi")}
-              >
-                ✅ Đã gửi
-              </button>
-              <button
-                className="py-2 px-4 bg-red-100 rounded hover:bg-red-200"
-                onClick={() => handleSelect("Chưa có")}
-              >
-                🚫 Chưa có
-              </button>
-                <button
-                className="py-2 px-4 bg-gradient-to-r from-[#a9a4eb] to-[#6A63F0] rounded hover:bg-red-200"
-                onClick={() => handleSelect("Tất Cả")}
-              >
-               Tất Cả
-              </button>
-            </div>
-            <button
-              onClick={handleCloseModal}
-              className="mt-4 text-sm text-gray-500 hover:underline w-full text-center"
-            >
-              Đóng
-            </button>
-          </div>
-        </div>
-      )}
+{showModal && (
+  <div className="fixed inset-0 flex items-center justify-center bg-black/40 z-50">
+    <div className="bg-white rounded-lg shadow-lg w-[300px] p-5 animate-fadeIn">
+      <h2 className="text-lg font-semibold mb-3 text-center">
+        Chọn hành động
+      </h2>
+
+      <div className="flex flex-col gap-3">
+        <button
+          className="py-2 px-4 bg-green-100 rounded hover:bg-green-200"
+          onClick={() => handleSelect("Đã gửi")}
+        >
+          ✅ Đã gửi
+        </button>
+
+        <button
+          className="py-2 px-4 bg-red-100 rounded hover:bg-red-200"
+          onClick={() => handleSelect("Chưa có")}
+        >
+          🚫 Chưa có
+        </button>
+
+        <button
+          className="py-2 px-4 bg-gradient-to-r from-[#a9a4eb] to-[#6A63F0] text-white rounded hover:opacity-90"
+          onClick={() => handleSelect("Tất Cả")}
+        >
+          🧩 Tất Cả
+        </button>
+
+        {/* 🔍 Nút mới – Tìm kiếm */}
+        <button
+          className="py-2 px-4 bg-blue-100 rounded hover:bg-blue-200"
+          onClick={() => {
+            handleCloseModal();
+            setShowSearch(true);   // <--- bật UI search
+          }}
+        >
+          🔍 Tìm kiếm biển số
+        </button>
+      </div>
+
+      <button
+        onClick={handleCloseModal}
+        className="mt-4 text-sm text-gray-500 hover:underline w-full text-center"
+      >
+        Đóng
+      </button>
+    </div>
+  </div>
+)}
+
+
+{showSearch && (
+  <div className="fixed inset-0 flex items-center justify-center bg-black/40 z-50">
+    <div className="bg-white rounded-lg shadow-lg w-[350px] p-5 animate-fadeIn">
+      <h2 className="text-lg font-semibold mb-3 text-center">🔍 Tìm biển số</h2>
+
+      <input
+        type="text"
+        value={searchText}
+        onChange={(e) => setSearchText(e.target.value)}
+        placeholder="Nhập biển số cần tìm..."
+        className="w-full border px-3 py-2 rounded outline-none focus:ring-2 focus:ring-blue-400"
+        onKeyDown={(e) => e.key === "Enter"}
+      />
+
+      <div className="flex gap-3 mt-4">
+<button
+  className="flex-1 bg-blue-500 text-white py-2 rounded hover:bg-blue-600"
+  onClick={() => {
+    const normalizedSearch = searchText.trim().toLowerCase().replace(/[^a-z0-9]/g, "");
+    if (!normalizedSearch) return;
+
+    const matchingPlates: string[] = [];
+
+    zones.forEach(zone => {
+      zone.spots?.forEach(slot => {
+        if (slot.plateNumber) {
+          const normalizedPlate = slot.plateNumber.toLowerCase().replace(/[^a-z0-9]/g, "");
+          if (normalizedPlate.includes(normalizedSearch)) {
+            matchingPlates.push(slot.plateNumber);
+          }
+        }
+      });
+    });
+
+    setHighlightedPlates(matchingPlates);
+    setShowSearch(false);
+  }}
+>
+  Tìm kiếm
+</button>
+
+        <button
+          className="flex-1 bg-gray-200 py-2 rounded hover:bg-gray-300"
+          onClick={() => {
+            setShowSearch(false);
+            setSearchText("");
+          }}
+        >
+          Đóng
+        </button>
+      </div>
+    </div>
+  </div>
+)}
+
+
 
       
         <div className="flex items-center gap-2 mt-2 justify-end">

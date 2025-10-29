@@ -137,8 +137,8 @@ const handleItemClick = (itemId: string) => {
             <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
             <div className="w-2 h-2 bg-green-500 rounded-full"></div>
           </div>
-          <span className="bg-gradient-to-r from-[#503EE1] to-[#6A63F0] bg-clip-text text-transparent font-bold text-sm text-xl">Quản lý</span>
-          <span className="text-black font-bold text-xl ">bãi đỗ xe </span>
+          <span className="bg-gradient-to-r from-[#503EE1] to-[#6A63F0] bg-clip-text text-transparent font-bold text-sm text-xl">Parking</span>
+          <span className="text-black font-bold text-xl ">Manager</span>
         </div>
       </div>
 
