@@ -33,10 +33,9 @@ export default function BookingPage({ user, setUser }: BookingPageProps) {
     time: "",
     status: "Chưa có",
   });
+
   const [bookings, setBookings] = useState<Booking[]>([
-    { id: "1", Name: "Tuấn", typecar: "Xe máy", SDT: "0908263221", plate: "51A-12345", slot: "A1", time: "22/10/2025 10:30", status: "Đã gửi" },
-    { id: "2", Name: "Nghĩa", typecar: "Ô tô", SDT: "03268232", plate: "60B-45678", slot: "B3", time: "22/10/2025 09:10", status: "Chưa có" },
-    { id: "3", Name: "Hoài", typecar: "Xe tải", SDT: "047213123", plate: "29C-78901", slot: "A5", time: "22/10/2025 11:20 ", status: "Đã gửi" },
+  
   ]);
 
   if (!user) {

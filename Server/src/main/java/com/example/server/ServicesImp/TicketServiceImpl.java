@@ -70,7 +70,6 @@ public class TicketServiceImpl implements TicketService {
         return response;
     }
 
-
     // ---------------------
     // CRUD / Business
     // ---------------------

@@ -18,24 +18,6 @@ interface RolesPageProps {
 
 export default function RolesPage({ user }: RolesPageProps) {
   const [staffs, setStaffs] = useState<Staff[]>([
-    {
-      id: "1",
-      name: "Nguyễn Văn A",
-      username: "vana",
-      password: "123456",
-      role: "Quản lý",
-      phone: "0909123456",
-      createdAt: "10/10/2025",
-    },
-    {
-      id: "2",
-      name: "Trần Thị B",
-      username: "thib",
-      password: "abcdef",
-      role: "Nhân viên",
-      phone: "0911123456",
-      createdAt: "15/10/2025",
-    },
   ]);
 
   const [showModal, setShowModal] = useState(false);
